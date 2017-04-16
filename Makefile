@@ -1,15 +1,15 @@
 SRC_DIR=./Source
 INC_DIR=./include
-CFLAGS=-std=c++11
+CFLAGS=-g -std=c++11
 all:
 	#make clean
-	g++ -lpthread  $(CFLAGS) -c $(SRC_DIR)/server.cpp
-	g++ -lpthread  $(CFLAGS) -c $(SRC_DIR)/client.cpp
+	g++ -pthread  $(CFLAGS) -c $(SRC_DIR)/server.cpp
+	g++ -pthread  $(CFLAGS) -c $(SRC_DIR)/client.cpp
 
-	g++ -lpthread  $(CFLAGS) -I $(INC_DIR) -c $(SRC_DIR)/main.cpp 
-	g++ -lpthread  $(CFLAGS) -I $(INC_DIR) -c $(SRC_DIR)/main_client.cpp
-	g++ $(CFLAGS) -o main main.o server.o
-	g++ $(CFLAGS) -o main_client main_client.o client.o
+	g++ -pthread  $(CFLAGS) -I $(INC_DIR) -c $(SRC_DIR)/main.cpp 
+	g++ -pthread  $(CFLAGS) -I $(INC_DIR) -c $(SRC_DIR)/main_client.cpp
+	g++ -pthread $(CFLAGS) -o main main.o server.o
+	g++ -pthread $(CFLAGS) -o main_client main_client.o client.o
 
 
 clean:

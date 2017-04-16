@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <pthread.h>
 #include "../include/server.h"
 #define DEBUG
 
@@ -29,7 +30,11 @@ int server::create_socket()
 
 int get_data(char * str)
 {
-	char command[] = "./wunderground_wrapper/weather ottawa canada";
+	char location[64] = " ottawa canada";
+	// char command[] = "./wunderground_wrapper/weather ottawa canada";
+	char command[256] = "./wunderground_wrapper/weather ";
+	strcat(command, location);
+	printf("command: %s\n", command);
 	FILE * fp = popen(command, "r");
 	if 	(!fp)
 	{
@@ -39,13 +44,7 @@ int get_data(char * str)
 	// char str[] = {0};
 	// fread(str, 10, 1, fp);
 	fgets(str, 256, fp);
-	// puts(str);
-	// while( fgets(str, 256, fp) != NULL)
-	// 	{
-	// 		puts(str);
-	// 	}
-	
-	// pclose(fp);
+
 	return 0;
 }
 
@@ -54,7 +53,7 @@ int server::run()
 	struct sockaddr_in serv_addr;
 	memset(&serv_addr, 0, sizeof(&serv_addr));
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(atoi("16001"));
+	serv_addr.sin_port = htons(atoi("19001"));
 	serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	int bind_ret;
 	if ( (bind_ret = bind(this->socketid, (struct sockaddr *)&serv_addr, sizeof(serv_addr))) < 0 )
@@ -68,31 +67,56 @@ int server::run()
 		}
 
 	int lis_ret = listen(this->socketid, 1);
-	struct sockaddr_in client_addr;
-	socklen_t client_addr_len = sizeof(client_addr);
-	int conn_sockid = accept(this->socketid, (struct sockaddr *) & client_addr, &client_addr_len);
-	char send_buffer[] = "Rajesh Dawadi\n";
-	// send(conn_sockid, &send_buffer, sizeof(send_buffer), 0);
 
-	char output_string[256] = {0};
-	get_data(output_string);
-	send(conn_sockid, &output_string, sizeof(output_string), 0);
-	// system("./wunderground/weather ottawa canada");
+	while(1)
+	{
+		struct sockaddr_in client_addr;
+		socklen_t client_addr_len = sizeof(client_addr);
+		int conn_sockid = accept(this->socketid, (struct sockaddr *) & client_addr, &client_addr_len);
+
+		pthread_t threadid;
+		if (pthread_create(&threadid, NULL,  this->connection_handler, (void *)&conn_sockid) )
+		{
+			printf("Cannot create thread for this client\n");
+			return -1;
+		}
+		// pthread_join(threadid, NULL);
+		// connection_handler(&conn_sockid);
+	
+	}
+
+	// while(1);
 	return 0;
 }
 
+void * server::connection_handler(void * conn_sockid)
+{
+	int sockid = *(int *)conn_sockid;
+	char output_string[256] = {0};
+	char input_string[256] = {0};
+	while(1)
+	{
+		char client_ip[64] = {0};
+		int count  = recv(sockid, &client_ip, sizeof(client_ip), 0);
+		printf("This client ip: %s\n", client_ip);
+		// printf("%s\n", client_ip);
+		// strncpy(client_ips[0], client_ip, 64);
+		get_data(output_string);
+		send(sockid, &output_string, sizeof(output_string), 0);
+		// memcpy(output_string, "hello\n", 256);
+		// output_string = "hello\n";
+		sleep(5);
+		// send(sockid, &output_string, sizeof(output_string), 0);		
+	}
 
+	// for(int j = 0; j <= client_count; j++)
+		// printf("Client ip %d: %s\n", j, client_ips[j]);	
+}
 
 const char * server::getip()
 {
 	return this->server_ip;
 }
-// int main()
-// {
-// 	TRACE_PRINTF(("Starting server application...\n"));
-	
-// 	return 0;
-// }
 
 
 

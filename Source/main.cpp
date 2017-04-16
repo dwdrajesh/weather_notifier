@@ -21,7 +21,10 @@ int main()
 	server s1;
 	int server_socket = s1.create_socket();
 	// pthread_create(&server_thread, NULL, s1.run, NULL);
-	s1.run();
+	while (1)
+	{
+		s1.run();	
+	}
 	// struct sockaddr_in serv_addr; // address of socket of the server
 	// memset(&serv_addr, 0, sizeof(serv_addr));
 	// serv_addr.sin_family = AF_INET;
